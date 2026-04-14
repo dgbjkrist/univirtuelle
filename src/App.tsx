@@ -1,10 +1,20 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Index from "./pages/Index.tsx";
-import NotFound from "./pages/NotFound.tsx";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { AppLayout } from "@/components/AppLayout";
+import LoginPage from "@/pages/LoginPage";
+import DashboardPage from "@/pages/DashboardPage";
+import EnseignantsPage from "@/pages/EnseignantsPage";
+import CoursPage from "@/pages/CoursPage";
+import ActivitesPage from "@/pages/ActivitesPage";
+import HeuresPage from "@/pages/HeuresPage";
+import RapportsPage from "@/pages/RapportsPage";
+import NotificationsPage from "@/pages/NotificationsPage";
+import ParametresPage from "@/pages/ParametresPage";
+import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -13,13 +23,23 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<AppLayout><DashboardPage /></AppLayout>} />
+            <Route path="/enseignants" element={<AppLayout><EnseignantsPage /></AppLayout>} />
+            <Route path="/cours" element={<AppLayout><CoursPage /></AppLayout>} />
+            <Route path="/activites" element={<AppLayout><ActivitesPage /></AppLayout>} />
+            <Route path="/heures" element={<AppLayout><HeuresPage /></AppLayout>} />
+            <Route path="/rapports" element={<AppLayout><RapportsPage /></AppLayout>} />
+            <Route path="/notifications" element={<AppLayout><NotificationsPage /></AppLayout>} />
+            <Route path="/parametres" element={<AppLayout><ParametresPage /></AppLayout>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
