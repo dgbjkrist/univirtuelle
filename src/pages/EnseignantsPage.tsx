@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { enseignants as initialData, Enseignant, departements } from "@/data/mockData";
+import { enseignants as initialData, Enseignant, departements, activites, getHeuresEnseignant } from "@/data/mockData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +53,7 @@ export default function EnseignantsPage() {
       setData((d) => d.map((e) => e.id === editing.id ? { ...e, ...form } : e));
       toast.success("Enseignant modifié");
     } else {
-      setData((d) => [...d, { ...form, id: String(Date.now()), heuresTotal: 0, heuresComplementaires: 0 }]);
+      setData((d) => [...d, { ...form, id: String(Date.now()) }]);
       toast.success("Enseignant ajouté");
     }
     setDialogOpen(false);
@@ -128,10 +128,7 @@ export default function EnseignantsPage() {
                       <Badge variant={e.statut === "Permanent" ? "default" : "secondary"}>{e.statut}</Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <span className="font-medium">{e.heuresTotal}h</span>
-                      {e.heuresComplementaires > 0 && (
-                        <span className="text-xs text-warning ml-1">(+{e.heuresComplementaires})</span>
-                      )}
+                      {(() => { const h = getHeuresEnseignant(e.id, activites); return (<><span className="font-medium">{h.total}h</span>{h.complementaires > 0 && <span className="text-xs text-destructive ml-1">(+{h.complementaires})</span>}</>); })()}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -234,8 +231,7 @@ export default function EnseignantsPage() {
               <div><span className="text-muted-foreground">Email :</span> <span className="font-medium">{viewItem.email}</span></div>
               <div><span className="text-muted-foreground">Téléphone :</span> <span className="font-medium">{viewItem.telephone}</span></div>
               <div><span className="text-muted-foreground">Taux horaire :</span> <span className="font-medium">{viewItem.tauxHoraire} DA</span></div>
-              <div><span className="text-muted-foreground">Volume horaire :</span> <span className="font-medium">{viewItem.heuresTotal}h</span></div>
-              <div><span className="text-muted-foreground">Heures comp. :</span> <span className="font-medium">{viewItem.heuresComplementaires}h</span></div>
+              {(() => { const h = getHeuresEnseignant(viewItem.id, activites); return (<><div><span className="text-muted-foreground">Volume horaire :</span> <span className="font-medium">{h.total}h</span></div><div><span className="text-muted-foreground">Heures comp. :</span> <span className="font-medium">{h.complementaires}h</span></div></>); })()}
             </div>
           )}
         </DialogContent>
