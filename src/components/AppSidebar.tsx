@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, BookOpen, FileText, BarChart3, Settings, Bell, Clock,
-  GraduationCap, LogOut, ChevronLeft
+  GraduationCap, LogOut, ChevronLeft, Package, Layers
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth, UserRole } from "@/contexts/AuthContext";
@@ -22,6 +22,8 @@ const navItems: NavItem[] = [
   { title: "Tableau de bord", url: "/dashboard", icon: LayoutDashboard, roles: ["admin", "secretaire", "enseignant"] },
   { title: "Enseignants", url: "/enseignants", icon: Users, roles: ["admin", "secretaire"] },
   { title: "Cours", url: "/cours", icon: BookOpen, roles: ["admin", "secretaire"] },
+  { title: "Ressources", url: "/ressources", icon: Package, roles: ["admin", "secretaire"] },
+  { title: "Séquences", url: "/sequences", icon: Layers, roles: ["admin", "secretaire"] },
   { title: "Activités", url: "/activites", icon: FileText, roles: ["admin", "secretaire", "enseignant"] },
   { title: "Heures", url: "/heures", icon: Clock, roles: ["admin", "secretaire", "enseignant"] },
   { title: "Rapports", url: "/rapports", icon: BarChart3, roles: ["admin", "secretaire", "enseignant"] },

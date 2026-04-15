@@ -1,4 +1,5 @@
-import { enseignants, HEURES_NORMALES } from "@/data/mockData";
+import { useState } from "react";
+import { enseignants, activites, HEURES_NORMALES, getHeuresEnseignant } from "@/data/mockData";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,32 +15,35 @@ export default function HeuresPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Suivi des heures</h1>
-        <p className="text-muted-foreground text-sm mt-1">Volume horaire et heures complémentaires</p>
+        <p className="text-muted-foreground text-sm mt-1">Volume horaire calculé automatiquement à partir des activités validées</p>
       </div>
 
       {isEnseignant ? (
         <div className="space-y-4">
           {data.map((e) => {
-            const pct = Math.min((e.heuresTotal / HEURES_NORMALES) * 100, 100);
+            const h = getHeuresEnseignant(e.id, activites);
+            const pct = Math.min((h.total / HEURES_NORMALES) * 100, 100);
             return (
               <Card key={e.id}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Mon volume horaire</CardTitle>
-                </CardHeader>
+                <CardHeader className="pb-2"><CardTitle className="text-base">Mon volume horaire</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between text-sm">
                     <span>Progression</span>
-                    <span className="font-medium">{e.heuresTotal}h / {HEURES_NORMALES}h</span>
+                    <span className="font-medium">{h.total}h / {HEURES_NORMALES}h</span>
                   </div>
                   <Progress value={pct} className="h-3" />
-                  <div className="grid grid-cols-2 gap-4 pt-2">
-                    <div className="stat-card text-center">
-                      <p className="text-2xl font-bold">{e.heuresTotal}h</p>
+                  <div className="grid grid-cols-3 gap-4 pt-2">
+                    <div className="text-center p-3 rounded-lg bg-muted/50">
+                      <p className="text-2xl font-bold">{h.total}h</p>
                       <p className="text-sm text-muted-foreground">Heures totales</p>
                     </div>
-                    <div className="stat-card text-center">
-                      <p className="text-2xl font-bold">{e.heuresComplementaires}h</p>
-                      <p className="text-sm text-muted-foreground">Heures complémentaires</p>
+                    <div className="text-center p-3 rounded-lg bg-muted/50">
+                      <p className="text-2xl font-bold">{Math.min(h.total, HEURES_NORMALES)}h</p>
+                      <p className="text-sm text-muted-foreground">Heures normales</p>
+                    </div>
+                    <div className="text-center p-3 rounded-lg bg-muted/50">
+                      <p className="text-2xl font-bold">{h.complementaires}h</p>
+                      <p className="text-sm text-muted-foreground">Complémentaires</p>
                     </div>
                   </div>
                 </CardContent>
@@ -58,6 +62,7 @@ export default function HeuresPage() {
                     <TableHead>Département</TableHead>
                     <TableHead>Grade</TableHead>
                     <TableHead className="text-right">Heures totales</TableHead>
+                    <TableHead className="text-right">H. normales</TableHead>
                     <TableHead className="text-right">H. complémentaires</TableHead>
                     <TableHead>Progression</TableHead>
                     <TableHead>Statut</TableHead>
@@ -65,21 +70,20 @@ export default function HeuresPage() {
                 </TableHeader>
                 <TableBody>
                   {data.map((e) => {
-                    const pct = Math.min((e.heuresTotal / HEURES_NORMALES) * 100, 100);
-                    const exceeded = e.heuresTotal > HEURES_NORMALES;
+                    const h = getHeuresEnseignant(e.id, activites);
+                    const pct = Math.min((h.total / HEURES_NORMALES) * 100, 100);
                     return (
                       <TableRow key={e.id}>
                         <TableCell className="font-medium">{e.prenom} {e.nom}</TableCell>
                         <TableCell>{e.departement}</TableCell>
                         <TableCell>{e.grade}</TableCell>
-                        <TableCell className="text-right font-medium">{e.heuresTotal}h</TableCell>
-                        <TableCell className="text-right">{e.heuresComplementaires}h</TableCell>
-                        <TableCell className="w-32">
-                          <Progress value={pct} className="h-2" />
-                        </TableCell>
+                        <TableCell className="text-right font-medium">{h.total}h</TableCell>
+                        <TableCell className="text-right">{Math.min(h.total, HEURES_NORMALES)}h</TableCell>
+                        <TableCell className="text-right">{h.complementaires}h</TableCell>
+                        <TableCell className="w-32"><Progress value={pct} className="h-2" /></TableCell>
                         <TableCell>
-                          <Badge variant={exceeded ? "destructive" : "default"}>
-                            {exceeded ? "Dépassement" : "Normal"}
+                          <Badge variant={h.complementaires > 0 ? "destructive" : "default"}>
+                            {h.complementaires > 0 ? "Dépassement" : "Normal"}
                           </Badge>
                         </TableCell>
                       </TableRow>
