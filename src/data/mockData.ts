@@ -31,6 +31,7 @@ export interface Ressource {
   fichierUrl: string;
   complexite: "Faible" | "Moyen" | "Élevé";
   coursId: string;
+  sequenceId?: string;
 }
 
 export interface Sequence {
@@ -71,10 +72,10 @@ export const cours: Cours[] = [
 ];
 
 export const ressources: Ressource[] = [
-  { id: "r1", titre: "Cours vidéo - Arbres binaires", type: "Vidéo", description: "Introduction aux arbres binaires et parcours", fichierUrl: "", complexite: "Élevé", coursId: "1" },
-  { id: "r2", titre: "Quiz - Complexité algorithmique", type: "Quiz", description: "Évaluation des connaissances en complexité", fichierUrl: "", complexite: "Moyen", coursId: "1" },
-  { id: "r3", titre: "TP - Normalisation BDD", type: "Activité interactive", description: "Travaux pratiques sur la normalisation", fichierUrl: "", complexite: "Élevé", coursId: "2" },
-  { id: "r4", titre: "Document - Séries de Fourier", type: "Document", description: "Support de cours sur les séries de Fourier", fichierUrl: "", complexite: "Moyen", coursId: "3" },
+  { id: "r1", titre: "Cours vidéo - Arbres binaires", type: "Vidéo", description: "Introduction aux arbres binaires et parcours", fichierUrl: "", complexite: "Élevé", coursId: "1", sequenceId: "s1" },
+  { id: "r2", titre: "Quiz - Complexité algorithmique", type: "Quiz", description: "Évaluation des connaissances en complexité", fichierUrl: "", complexite: "Moyen", coursId: "1", sequenceId: "s1" },
+  { id: "r3", titre: "TP - Normalisation BDD", type: "Activité interactive", description: "Travaux pratiques sur la normalisation", fichierUrl: "", complexite: "Élevé", coursId: "2", sequenceId: "s2" },
+  { id: "r4", titre: "Document - Séries de Fourier", type: "Document", description: "Support de cours sur les séries de Fourier", fichierUrl: "", complexite: "Moyen", coursId: "3", sequenceId: "s3" },
   { id: "r5", titre: "Évaluation - Mécanique", type: "Évaluation", description: "Examen de mécanique quantique", fichierUrl: "", complexite: "Faible", coursId: "4" },
   { id: "r6", titre: "Activité interactive - Circuits", type: "Activité interactive", description: "Simulation de circuits électroniques", fichierUrl: "", complexite: "Élevé", coursId: "5" },
   { id: "r7", titre: "Contenu textuel - Intro IA", type: "Texte", description: "Introduction à l'intelligence artificielle", fichierUrl: "", complexite: "Moyen", coursId: "6" },
