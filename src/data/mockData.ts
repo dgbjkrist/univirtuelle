@@ -18,7 +18,7 @@ export interface Cours {
   semestre: 1 | 2;
   nombreHeures: number;
   credits: number;
-  enseignantId?: string;
+  enseignantIds: string[];
 }
 
 export type RessourceType = "Texte" | "Vidéo" | "Document" | "Quiz" | "Activité interactive" | "Évaluation";
@@ -63,12 +63,12 @@ export const enseignants: Enseignant[] = [
 ];
 
 export const cours: Cours[] = [
-  { id: "1", intitule: "Algorithmique avancée", filiere: "Informatique", niveau: "L3", semestre: 1, nombreHeures: 42, credits: 4, enseignantId: "1" },
-  { id: "2", intitule: "Bases de données", filiere: "Informatique", niveau: "L2", semestre: 2, nombreHeures: 56, credits: 5, enseignantId: "4" },
-  { id: "3", intitule: "Analyse numérique", filiere: "Mathématiques", niveau: "M1", semestre: 1, nombreHeures: 42, credits: 4, enseignantId: "2" },
-  { id: "4", intitule: "Mécanique quantique", filiere: "Physique", niveau: "M2", semestre: 1, nombreHeures: 28, credits: 3, enseignantId: "3" },
-  { id: "5", intitule: "Réseaux informatiques", filiere: "Informatique", niveau: "L3", semestre: 2, nombreHeures: 42, credits: 4, enseignantId: "1" },
-  { id: "6", intitule: "Intelligence artificielle", filiere: "Informatique", niveau: "M1", semestre: 1, nombreHeures: 56, credits: 6, enseignantId: "4" },
+  { id: "1", intitule: "Algorithmique avancée", filiere: "Informatique", niveau: "L3", semestre: 1, nombreHeures: 42, credits: 4, enseignantIds: ["1"] },
+  { id: "2", intitule: "Bases de données", filiere: "Informatique", niveau: "L2", semestre: 2, nombreHeures: 56, credits: 5, enseignantIds: ["4"] },
+  { id: "3", intitule: "Analyse numérique", filiere: "Mathématiques", niveau: "M1", semestre: 1, nombreHeures: 42, credits: 4, enseignantIds: ["2"] },
+  { id: "4", intitule: "Mécanique quantique", filiere: "Physique", niveau: "M2", semestre: 1, nombreHeures: 28, credits: 3, enseignantIds: ["3"] },
+  { id: "5", intitule: "Réseaux informatiques", filiere: "Informatique", niveau: "L3", semestre: 2, nombreHeures: 42, credits: 4, enseignantIds: ["1", "5"] },
+  { id: "6", intitule: "Intelligence artificielle", filiere: "Informatique", niveau: "M1", semestre: 1, nombreHeures: 56, credits: 6, enseignantIds: ["4", "1"] },
 ];
 
 export const ressources: Ressource[] = [
@@ -114,3 +114,8 @@ export function getHeuresEnseignant(enseignantId: string, acts: Activite[]): { t
   const complementaires = Math.max(0, total - HEURES_NORMALES);
   return { total, complementaires };
 }
+
+// Map auth user id to enseignant id (for teacher login)
+export const AUTH_ENSEIGNANT_MAP: Record<string, string> = {
+  "3": "1", // Auth user id "3" (enseignant@univ.dz) → Enseignant "1" (Karim Hadj)
+};

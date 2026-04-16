@@ -1,14 +1,19 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   cours as allCours,
   sequences as initialSeqs,
   ressources as initialRes,
+  activites as initialActs,
   enseignants,
   Sequence,
   Ressource,
+  Activite,
   RessourceType,
   RESSOURCE_TYPES,
+  calculerHeures,
+  AUTH_ENSEIGNANT_MAP,
 } from "@/data/mockData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Plus, Pencil, Trash2, ArrowUp, ArrowDown, BookOpen, FileText, Video, HelpCircle, Gamepad2, ClipboardCheck } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, ArrowUp, ArrowDown, BookOpen, FileText, Video, HelpCircle, Gamepad2, ClipboardCheck, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 const typeIcons: Record<RessourceType, React.ReactNode> = {
@@ -30,13 +35,16 @@ const typeIcons: Record<RessourceType, React.ReactNode> = {
   "Évaluation": <ClipboardCheck className="h-4 w-4" />,
 };
 
-export default function CoursDetailPage() {
+export default function MesCoursDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const coursItem = allCours.find((c) => c.id === id);
+  const { user } = useAuth();
+  const enseignantId = user ? AUTH_ENSEIGNANT_MAP[user.id] || user.id : "";
+  const coursItem = allCours.find((c) => c.id === id && c.enseignantIds.includes(enseignantId));
 
   const [sequences, setSequences] = useState<Sequence[]>(initialSeqs.filter((s) => s.coursId === id));
   const [ressources, setRessources] = useState<Ressource[]>(initialRes.filter((r) => r.coursId === id));
+  const [activites, setActivites] = useState<Activite[]>(initialActs);
 
   // Sequence dialog
   const [seqDialogOpen, setSeqDialogOpen] = useState(false);
@@ -54,13 +62,28 @@ export default function CoursDetailPage() {
   if (!coursItem) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <p className="text-muted-foreground">Cours introuvable</p>
-        <Button variant="outline" onClick={() => navigate("/cours")}>Retour</Button>
+        <p className="text-muted-foreground">Cours introuvable ou non attribué</p>
+        <Button variant="outline" onClick={() => navigate("/mes-cours")}>Retour</Button>
       </div>
     );
   }
 
-  const coursEnseignants = enseignants.filter((e) => coursItem.enseignantIds.includes(e.id));
+  // Auto-create activity helper
+  const createAutoActivity = (ressource: Ressource, type: "Création" | "Mise à jour") => {
+    const heures = calculerHeures(type, ressource.complexite);
+    const newActivity: Activite = {
+      id: `act-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      enseignantId,
+      type,
+      ressourceId: ressource.id,
+      complexite: ressource.complexite,
+      date: new Date().toISOString().split("T")[0],
+      heuresCalculees: heures,
+      statut: "En attente",
+    };
+    setActivites((prev) => [...prev, newActivity]);
+    return newActivity;
+  };
 
   // --- Sequence CRUD ---
   const openAddSeq = () => { setEditingSeq(null); setSeqForm({ titre: "" }); setSeqDialogOpen(true); };
@@ -98,7 +121,7 @@ export default function CoursDetailPage() {
     });
   };
 
-  // --- Resource CRUD ---
+  // --- Resource CRUD with auto-activity ---
   const openAddRes = (seqId: string) => {
     setEditingRes(null);
     setTargetSeqId(seqId);
@@ -116,8 +139,8 @@ export default function CoursDetailPage() {
   const saveRes = () => {
     if (!resForm.titre) { toast.error("Titre obligatoire"); return; }
     if (editingRes) {
-      setRessources((d) => d.map((r) => r.id === editingRes.id ? { ...r, ...resForm, sequenceId: targetSeqId || undefined } : r));
-      // Update sequence ressourceIds if sequence changed
+      const updatedRes = { ...editingRes, ...resForm, sequenceId: targetSeqId || undefined };
+      setRessources((d) => d.map((r) => r.id === editingRes.id ? updatedRes : r));
       if (editingRes.sequenceId !== targetSeqId) {
         setSequences((seqs) => seqs.map((s) => {
           if (s.id === editingRes.sequenceId) return { ...s, ressourceIds: s.ressourceIds.filter((rid) => rid !== editingRes.id) };
@@ -125,14 +148,19 @@ export default function CoursDetailPage() {
           return s;
         }));
       }
-      toast.success("Ressource modifiée");
+      // AUTO: create "Mise à jour" activity
+      const act = createAutoActivity(updatedRes, "Mise à jour");
+      toast.success(`Ressource modifiée — activité auto-créée (+${act.heuresCalculees}h)`);
     } else {
       const newId = `r${Date.now()}`;
-      setRessources((d) => [...d, { ...resForm, id: newId, coursId: id!, sequenceId: targetSeqId || undefined }]);
+      const newRes: Ressource = { ...resForm, id: newId, coursId: id!, sequenceId: targetSeqId || undefined };
+      setRessources((d) => [...d, newRes]);
       if (targetSeqId) {
         setSequences((seqs) => seqs.map((s) => s.id === targetSeqId ? { ...s, ressourceIds: [...s.ressourceIds, newId] } : s));
       }
-      toast.success("Ressource ajoutée");
+      // AUTO: create "Création" activity
+      const act = createAutoActivity(newRes, "Création");
+      toast.success(`Ressource ajoutée — activité auto-créée (+${act.heuresCalculees}h)`);
     }
     setResDialogOpen(false);
   };
@@ -148,11 +176,18 @@ export default function CoursDetailPage() {
   const sortedSequences = [...sequences].sort((a, b) => a.ordre - b.ordre);
   const unassignedRes = ressources.filter((r) => !r.sequenceId);
 
+  // Recent activities for this course
+  const courseResIds = ressources.map((r) => r.id);
+  const courseActivites = activites
+    .filter((a) => a.enseignantId === enseignantId && courseResIds.includes(a.ressourceId))
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 5);
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/cours")} className="mt-1">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/mes-cours")} className="mt-1">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
@@ -162,13 +197,12 @@ export default function CoursDetailPage() {
             <Badge variant="outline">S{coursItem.semestre}</Badge>
             <span className="text-sm text-muted-foreground">{coursItem.filiere}</span>
             <span className="text-sm text-muted-foreground">• {coursItem.nombreHeures}h • {coursItem.credits} crédits</span>
-            {coursEnseignants.length > 0 && <span className="text-sm text-muted-foreground">• {coursEnseignants.map(e => `${e.prenom} ${e.nom}`).join(", ")}</span>}
           </div>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-4 pb-4 text-center">
             <p className="text-2xl font-bold text-primary">{sequences.length}</p>
@@ -181,13 +215,48 @@ export default function CoursDetailPage() {
             <p className="text-xs text-muted-foreground">Ressources</p>
           </CardContent>
         </Card>
-        <Card className="col-span-2 sm:col-span-1">
+        <Card>
           <CardContent className="pt-4 pb-4 text-center">
             <p className="text-2xl font-bold text-primary">{coursItem.nombreHeures}h</p>
             <p className="text-xs text-muted-foreground">Volume horaire</p>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="pt-4 pb-4 text-center">
+            <p className="text-2xl font-bold text-primary">{courseActivites.length}</p>
+            <p className="text-xs text-muted-foreground">Activités récentes</p>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Recent auto-activities */}
+      {courseActivites.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Zap className="h-4 w-4 text-primary" /> Activités pédagogiques récentes
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-2">
+              {courseActivites.map((a) => {
+                const res = ressources.find((r) => r.id === a.ressourceId);
+                return (
+                  <div key={a.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50 text-sm">
+                    <Badge variant={a.type === "Création" ? "default" : "secondary"} className="text-xs shrink-0">{a.type}</Badge>
+                    <span className="flex-1 truncate">{res?.titre || a.ressourceId}</span>
+                    <Badge variant={a.statut === "Validée" ? "default" : a.statut === "Rejetée" ? "destructive" : "secondary"} className="text-xs">
+                      {a.statut}
+                    </Badge>
+                    <span className="text-muted-foreground text-xs">{a.heuresCalculees}h</span>
+                    <span className="text-muted-foreground text-xs">{a.date}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Sequences */}
       <div className="flex items-center justify-between">
@@ -354,6 +423,19 @@ export default function CoursDetailPage() {
             <div className="space-y-2">
               <Label>Fichier / URL</Label>
               <Input value={resForm.fichierUrl} onChange={(e) => setResForm({ ...resForm, fichierUrl: e.target.value })} placeholder="https://..." />
+            </div>
+            {/* Preview: auto-calculated hours */}
+            <div className="rounded-md bg-muted/50 p-3 text-sm">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary" />
+                <span className="font-medium">Heures auto-calculées :</span>
+                <Badge variant="default">
+                  +{calculerHeures(editingRes ? "Mise à jour" : "Création", resForm.complexite)}h
+                </Badge>
+                <span className="text-muted-foreground">
+                  ({editingRes ? "Mise à jour" : "Création"} • {resForm.complexite})
+                </span>
+              </div>
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-2">

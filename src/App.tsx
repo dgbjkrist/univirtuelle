@@ -10,6 +10,8 @@ import DashboardPage from "@/pages/DashboardPage";
 import EnseignantsPage from "@/pages/EnseignantsPage";
 import CoursPage from "@/pages/CoursPage";
 import CoursDetailPage from "@/pages/CoursDetailPage";
+import MesCoursPage from "@/pages/MesCoursPage";
+import MesCoursDetailPage from "@/pages/MesCoursDetailPage";
 import RessourcesPage from "@/pages/RessourcesPage";
 import SequencesPage from "@/pages/SequencesPage";
 import ActivitesPage from "@/pages/ActivitesPage";
@@ -35,6 +37,8 @@ const App = () => (
             <Route path="/enseignants" element={<AppLayout><EnseignantsPage /></AppLayout>} />
             <Route path="/cours" element={<AppLayout><CoursPage /></AppLayout>} />
             <Route path="/cours/:id" element={<AppLayout><CoursDetailPage /></AppLayout>} />
+            <Route path="/mes-cours" element={<AppLayout><MesCoursPage /></AppLayout>} />
+            <Route path="/mes-cours/:id" element={<AppLayout><MesCoursDetailPage /></AppLayout>} />
             <Route path="/ressources" element={<AppLayout><RessourcesPage /></AppLayout>} />
             <Route path="/sequences" element={<AppLayout><SequencesPage /></AppLayout>} />
             <Route path="/activites" element={<AppLayout><ActivitesPage /></AppLayout>} />
