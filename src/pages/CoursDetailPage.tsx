@@ -60,7 +60,7 @@ export default function CoursDetailPage() {
     );
   }
 
-  const ens = enseignants.find((e) => e.id === coursItem.enseignantId);
+  const coursEnseignants = enseignants.filter((e) => coursItem.enseignantIds.includes(e.id));
 
   // --- Sequence CRUD ---
   const openAddSeq = () => { setEditingSeq(null); setSeqForm({ titre: "" }); setSeqDialogOpen(true); };
@@ -162,7 +162,7 @@ export default function CoursDetailPage() {
             <Badge variant="outline">S{coursItem.semestre}</Badge>
             <span className="text-sm text-muted-foreground">{coursItem.filiere}</span>
             <span className="text-sm text-muted-foreground">• {coursItem.nombreHeures}h • {coursItem.credits} crédits</span>
-            {ens && <span className="text-sm text-muted-foreground">• {ens.prenom} {ens.nom}</span>}
+            {coursEnseignants.length > 0 && <span className="text-sm text-muted-foreground">• {coursEnseignants.map(e => `${e.prenom} ${e.nom}`).join(", ")}</span>}
           </div>
         </div>
       </div>

@@ -22,6 +22,7 @@ const navItems: NavItem[] = [
   { title: "Tableau de bord", url: "/dashboard", icon: LayoutDashboard, roles: ["admin", "secretaire", "enseignant"] },
   { title: "Enseignants", url: "/enseignants", icon: Users, roles: ["admin", "secretaire"] },
   { title: "Cours", url: "/cours", icon: BookOpen, roles: ["admin", "secretaire"] },
+  { title: "Mes cours", url: "/mes-cours", icon: BookOpen, roles: ["enseignant"] },
   { title: "Ressources", url: "/ressources", icon: Package, roles: ["admin", "secretaire"] },
   { title: "Séquences", url: "/sequences", icon: Layers, roles: ["admin", "secretaire"] },
   { title: "Activités", url: "/activites", icon: FileText, roles: ["admin", "secretaire", "enseignant"] },
