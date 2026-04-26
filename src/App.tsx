@@ -12,8 +12,6 @@ import CoursPage from "@/pages/CoursPage";
 import CoursDetailPage from "@/pages/CoursDetailPage";
 import MesCoursPage from "@/pages/MesCoursPage";
 import MesCoursDetailPage from "@/pages/MesCoursDetailPage";
-import RessourcesPage from "@/pages/RessourcesPage";
-import SequencesPage from "@/pages/SequencesPage";
 import ActivitesPage from "@/pages/ActivitesPage";
 import HeuresPage from "@/pages/HeuresPage";
 import RapportsPage from "@/pages/RapportsPage";
