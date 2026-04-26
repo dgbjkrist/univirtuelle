@@ -56,7 +56,8 @@ export default function MesCoursDetailPage() {
   const [editingRes, setEditingRes] = useState<Ressource | null>(null);
   const [targetSeqId, setTargetSeqId] = useState<string>("");
   const [resForm, setResForm] = useState<Omit<Ressource, "id" | "coursId" | "sequenceId">>({
-    titre: "", type: "Texte", description: "", fichierUrl: "", complexite: "Moyen",
+    titre: "", type: "Texte", description: "", complexite: "Moyen",
+    contenuTexte: "", videoUrl: "", documentUrl: "", evaluationUrl: "", quiz: [],
   });
 
   if (!coursItem) {
