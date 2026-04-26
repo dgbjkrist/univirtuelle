@@ -345,7 +345,7 @@ export default function MesCoursDetailPage() {
                         <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteRes(r)}><Trash2 className="h-3 w-3" /></Button>
                       </div>
                     </div>
-                  ))}
+                  );})}
                 </div>
               )}
               <Button variant="outline" size="sm" className="gap-1" onClick={() => openAddRes(seq.id)}>
