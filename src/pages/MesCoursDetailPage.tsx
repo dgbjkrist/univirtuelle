@@ -126,14 +126,22 @@ export default function MesCoursDetailPage() {
   const openAddRes = (seqId: string) => {
     setEditingRes(null);
     setTargetSeqId(seqId);
-    setResForm({ titre: "", type: "Texte", description: "", fichierUrl: "", complexite: "Moyen" });
+    setResForm({
+      titre: "", type: "Texte", description: "", complexite: "Moyen",
+      contenuTexte: "", videoUrl: "", documentUrl: "", evaluationUrl: "", quiz: [],
+    });
     setResDialogOpen(true);
   };
 
   const openEditRes = (r: Ressource) => {
     setEditingRes(r);
     setTargetSeqId(r.sequenceId || "");
-    setResForm({ titre: r.titre, type: r.type, description: r.description, fichierUrl: r.fichierUrl, complexite: r.complexite });
+    setResForm({
+      titre: r.titre, type: r.type, description: r.description, complexite: r.complexite,
+      contenuTexte: r.contenuTexte || "", videoUrl: r.videoUrl || "",
+      documentUrl: r.documentUrl || "", evaluationUrl: r.evaluationUrl || "",
+      quiz: r.quiz || [],
+    });
     setResDialogOpen(true);
   };
 
