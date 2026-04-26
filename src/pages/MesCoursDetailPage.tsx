@@ -56,7 +56,8 @@ export default function MesCoursDetailPage() {
   const [editingRes, setEditingRes] = useState<Ressource | null>(null);
   const [targetSeqId, setTargetSeqId] = useState<string>("");
   const [resForm, setResForm] = useState<Omit<Ressource, "id" | "coursId" | "sequenceId">>({
-    titre: "", type: "Texte", description: "", fichierUrl: "", complexite: "Moyen",
+    titre: "", type: "Texte", description: "", complexite: "Moyen",
+    contenuTexte: "", videoUrl: "", documentUrl: "", evaluationUrl: "", quiz: [],
   });
 
   if (!coursItem) {
@@ -125,14 +126,22 @@ export default function MesCoursDetailPage() {
   const openAddRes = (seqId: string) => {
     setEditingRes(null);
     setTargetSeqId(seqId);
-    setResForm({ titre: "", type: "Texte", description: "", fichierUrl: "", complexite: "Moyen" });
+    setResForm({
+      titre: "", type: "Texte", description: "", complexite: "Moyen",
+      contenuTexte: "", videoUrl: "", documentUrl: "", evaluationUrl: "", quiz: [],
+    });
     setResDialogOpen(true);
   };
 
   const openEditRes = (r: Ressource) => {
     setEditingRes(r);
     setTargetSeqId(r.sequenceId || "");
-    setResForm({ titre: r.titre, type: r.type, description: r.description, fichierUrl: r.fichierUrl, complexite: r.complexite });
+    setResForm({
+      titre: r.titre, type: r.type, description: r.description, complexite: r.complexite,
+      contenuTexte: r.contenuTexte || "", videoUrl: r.videoUrl || "",
+      documentUrl: r.documentUrl || "", evaluationUrl: r.evaluationUrl || "",
+      quiz: r.quiz || [],
+    });
     setResDialogOpen(true);
   };
 
@@ -306,12 +315,27 @@ export default function MesCoursDetailPage() {
                 <p className="text-sm text-muted-foreground mb-3">Aucune ressource dans cette séquence.</p>
               ) : (
                 <div className="space-y-2 mb-3">
-                  {seqRes.map((r) => (
+                  {seqRes.map((r) => {
+                    const contents = [
+                      r.contenuTexte && { icon: <FileText className="h-3 w-3" />, label: "Texte" },
+                      r.videoUrl && { icon: <Video className="h-3 w-3" />, label: "Vidéo" },
+                      r.documentUrl && { icon: <FileText className="h-3 w-3" />, label: "Doc" },
+                      r.quiz && r.quiz.length > 0 && { icon: <HelpCircle className="h-3 w-3" />, label: "Quiz" },
+                      r.evaluationUrl && { icon: <ClipboardCheck className="h-3 w-3" />, label: "Éval" },
+                    ].filter(Boolean) as { icon: React.ReactNode; label: string }[];
+                    return (
                     <div key={r.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50 group">
                       <span className="text-muted-foreground">{typeIcons[r.type]}</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{r.titre}</p>
-                        <p className="text-xs text-muted-foreground truncate">{r.description}</p>
+                        <div className="flex items-center gap-1 flex-wrap mt-0.5">
+                          {contents.map((c, i) => (
+                            <Badge key={i} variant="outline" className="text-[10px] py-0 h-4 gap-0.5">
+                              {c.icon}{c.label}
+                            </Badge>
+                          ))}
+                          {contents.length === 0 && <span className="text-xs text-muted-foreground truncate">{r.description}</span>}
+                        </div>
                       </div>
                       <Badge variant={r.complexite === "Élevé" ? "destructive" : r.complexite === "Moyen" ? "default" : "secondary"} className="text-xs shrink-0">
                         {r.complexite}
@@ -321,7 +345,7 @@ export default function MesCoursDetailPage() {
                         <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteRes(r)}><Trash2 className="h-3 w-3" /></Button>
                       </div>
                     </div>
-                  ))}
+                  );})}
                 </div>
               )}
               <Button variant="outline" size="sm" className="gap-1" onClick={() => openAddRes(seq.id)}>
@@ -378,18 +402,21 @@ export default function MesCoursDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Resource Dialog */}
+      {/* Resource Dialog — multi-content combinable */}
       <Dialog open={resDialogOpen} onOpenChange={setResDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>{editingRes ? "Modifier la ressource" : "Ajouter une ressource"}</DialogTitle></DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingRes ? "Modifier la ressource" : "Ajouter une ressource"}</DialogTitle>
+          </DialogHeader>
           <div className="space-y-4">
+            {/* Métadonnées */}
             <div className="space-y-2">
               <Label>Titre *</Label>
               <Input value={resForm.titre} onChange={(e) => setResForm({ ...resForm, titre: e.target.value })} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>Type</Label>
+                <Label>Type principal</Label>
                 <Select value={resForm.type} onValueChange={(v) => setResForm({ ...resForm, type: v as RessourceType })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{RESSOURCE_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
@@ -406,33 +433,97 @@ export default function MesCoursDetailPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label>Séquence</Label>
+                <Select value={targetSeqId} onValueChange={setTargetSeqId}>
+                  <SelectTrigger><SelectValue placeholder="Séquence" /></SelectTrigger>
+                  <SelectContent>
+                    {sortedSequences.map((s) => <SelectItem key={s.id} value={s.id}>{s.titre}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-2">
-              <Label>Séquence</Label>
-              <Select value={targetSeqId} onValueChange={setTargetSeqId}>
-                <SelectTrigger><SelectValue placeholder="Sélectionner une séquence" /></SelectTrigger>
-                <SelectContent>
-                  {sortedSequences.map((s) => <SelectItem key={s.id} value={s.id}>{s.titre}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Description</Label>
+              <Label>Description courte</Label>
               <Textarea value={resForm.description} onChange={(e) => setResForm({ ...resForm, description: e.target.value })} rows={2} />
             </div>
-            <div className="space-y-2">
-              <Label>Fichier / URL</Label>
-              <Input value={resForm.fichierUrl} onChange={(e) => setResForm({ ...resForm, fichierUrl: e.target.value })} placeholder="https://..." />
+
+            {/* Contenus combinables */}
+            <div className="rounded-md border bg-muted/30 p-3 space-y-3">
+              <p className="text-sm font-medium flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" />
+                Contenus pédagogiques (combinables — tous optionnels)
+              </p>
+
+              <div className="space-y-2">
+                <Label className="text-xs flex items-center gap-1.5"><FileText className="h-3 w-3" /> Texte enrichi</Label>
+                <Textarea
+                  value={resForm.contenuTexte || ""}
+                  onChange={(e) => setResForm({ ...resForm, contenuTexte: e.target.value })}
+                  rows={4}
+                  placeholder="Saisir le contenu textuel (markdown / HTML supporté)..."
+                  className="font-mono text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-xs flex items-center gap-1.5"><Video className="h-3 w-3" /> Lien vidéo</Label>
+                  <Input
+                    value={resForm.videoUrl || ""}
+                    onChange={(e) => setResForm({ ...resForm, videoUrl: e.target.value })}
+                    placeholder="https://youtube.com/..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs flex items-center gap-1.5"><FileText className="h-3 w-3" /> Document (PDF, DOCX)</Label>
+                  <Input
+                    value={resForm.documentUrl || ""}
+                    onChange={(e) => setResForm({ ...resForm, documentUrl: e.target.value })}
+                    placeholder="https://... ou upload"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs flex items-center gap-1.5"><ClipboardCheck className="h-3 w-3" /> Évaluation (lien / module)</Label>
+                <Input
+                  value={resForm.evaluationUrl || ""}
+                  onChange={(e) => setResForm({ ...resForm, evaluationUrl: e.target.value })}
+                  placeholder="URL de l'évaluation ou identifiant du module"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs flex items-center gap-1.5"><HelpCircle className="h-3 w-3" /> Quiz — questions (1 par ligne, format : question | bonne réponse)</Label>
+                <Textarea
+                  value={(resForm.quiz || []).map((q) => `${q.question} | ${q.options[q.correct] || ""}`).join("\n")}
+                  onChange={(e) => {
+                    const quiz = e.target.value.split("\n").filter((l) => l.trim()).map((l) => {
+                      const [question, answer] = l.split("|").map((s) => s.trim());
+                      return { question: question || "", options: [answer || ""], correct: 0 };
+                    });
+                    setResForm({ ...resForm, quiz });
+                  }}
+                  rows={3}
+                  placeholder="Quelle est la complexité de ABR ? | O(log n)"
+                  className="text-sm"
+                />
+                {(resForm.quiz?.length || 0) > 0 && (
+                  <p className="text-xs text-muted-foreground">{resForm.quiz?.length} question(s) configurée(s)</p>
+                )}
+              </div>
             </div>
+
             {/* Preview: auto-calculated hours */}
-            <div className="rounded-md bg-muted/50 p-3 text-sm">
-              <div className="flex items-center gap-2">
+            <div className="rounded-md bg-primary/5 border border-primary/20 p-3 text-sm">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Zap className="h-4 w-4 text-primary" />
-                <span className="font-medium">Heures auto-calculées :</span>
+                <span className="font-medium">Activité auto-créée à la sauvegarde :</span>
                 <Badge variant="default">
                   +{calculerHeures(editingRes ? "Mise à jour" : "Création", resForm.complexite)}h
                 </Badge>
-                <span className="text-muted-foreground">
+                <span className="text-muted-foreground text-xs">
                   ({editingRes ? "Mise à jour" : "Création"} • {resForm.complexite})
                 </span>
               </div>

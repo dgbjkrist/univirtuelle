@@ -23,15 +23,29 @@ export interface Cours {
 
 export type RessourceType = "Texte" | "Vidéo" | "Document" | "Quiz" | "Activité interactive" | "Évaluation";
 
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correct: number;
+}
+
 export interface Ressource {
   id: string;
   titre: string;
+  // Type principal (classification primaire) — détermine l'icône et le calcul
   type: RessourceType;
   description: string;
-  fichierUrl: string;
   complexite: "Faible" | "Moyen" | "Élevé";
   coursId: string;
   sequenceId?: string;
+  // Contenus combinables (tous optionnels)
+  contenuTexte?: string;        // éditeur de texte riche (HTML/markdown)
+  videoUrl?: string;            // lien vidéo (YouTube, Vimeo) ou upload
+  documentUrl?: string;         // PDF, DOCX, etc.
+  quiz?: QuizQuestion[];        // module quiz
+  evaluationUrl?: string;       // module évaluation (lien ou ressource)
+  // Legacy
+  fichierUrl?: string;
 }
 
 export interface Sequence {
