@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, BookOpen, FileText, BarChart3, Settings, Bell, Clock,
-  GraduationCap, LogOut, ChevronLeft, Package, Layers
+  GraduationCap, LogOut, ChevronLeft
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth, UserRole } from "@/contexts/AuthContext";
