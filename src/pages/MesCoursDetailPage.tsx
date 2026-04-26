@@ -315,12 +315,27 @@ export default function MesCoursDetailPage() {
                 <p className="text-sm text-muted-foreground mb-3">Aucune ressource dans cette séquence.</p>
               ) : (
                 <div className="space-y-2 mb-3">
-                  {seqRes.map((r) => (
+                  {seqRes.map((r) => {
+                    const contents = [
+                      r.contenuTexte && { icon: <FileText className="h-3 w-3" />, label: "Texte" },
+                      r.videoUrl && { icon: <Video className="h-3 w-3" />, label: "Vidéo" },
+                      r.documentUrl && { icon: <FileText className="h-3 w-3" />, label: "Doc" },
+                      r.quiz && r.quiz.length > 0 && { icon: <HelpCircle className="h-3 w-3" />, label: "Quiz" },
+                      r.evaluationUrl && { icon: <ClipboardCheck className="h-3 w-3" />, label: "Éval" },
+                    ].filter(Boolean) as { icon: React.ReactNode; label: string }[];
+                    return (
                     <div key={r.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50 group">
                       <span className="text-muted-foreground">{typeIcons[r.type]}</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{r.titre}</p>
-                        <p className="text-xs text-muted-foreground truncate">{r.description}</p>
+                        <div className="flex items-center gap-1 flex-wrap mt-0.5">
+                          {contents.map((c, i) => (
+                            <Badge key={i} variant="outline" className="text-[10px] py-0 h-4 gap-0.5">
+                              {c.icon}{c.label}
+                            </Badge>
+                          ))}
+                          {contents.length === 0 && <span className="text-xs text-muted-foreground truncate">{r.description}</span>}
+                        </div>
                       </div>
                       <Badge variant={r.complexite === "Élevé" ? "destructive" : r.complexite === "Moyen" ? "default" : "secondary"} className="text-xs shrink-0">
                         {r.complexite}
